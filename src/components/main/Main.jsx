@@ -1,7 +1,7 @@
 import Card from './card/Card.jsx'
 import style from './Main.module.css'
 import undefined from '../../assets/placeholder.webp'
-import { initialPosts } from '../../posts.js'
+// import { initialPosts } from '../../posts.js'
 import { useEffect, useState } from 'react'
 
 const initialFormData = {
@@ -13,6 +13,8 @@ const initialFormData = {
     published: true,
 }
 
+export const API_BASE_URI = 'http://localhost:3000/'
+
 export default function Main() {
 
     const [posts, setPosts] = useState(initialPosts)
@@ -20,6 +22,21 @@ export default function Main() {
     // const [title, setTitle] = useState('')
     const [tags, setTags] = useState([])
     const [formData, setFormData] = useState(initialFormData)
+
+    function fetchPosts() {
+        axios.get(`${API_BASE_URI}posts`)
+            .then(res => {
+                console.log('posts response:', res)
+                setPosts(res.data.filteredPosts)
+            })
+            .catch(err => {
+                console.error(err)
+            })
+    }
+
+    useEffect(() => {
+        fetchPosts()
+    }, [])
 
     useEffect(() => {
         setPublishedPosts(posts.filter((post) => post.published === true))
@@ -40,22 +57,39 @@ export default function Main() {
     }, [posts])
 
 
+    function addPost(event) {
+        event.preventDefault();
 
-    function addPost(e) {
-        e.preventDefault()
-
-        // const newTitle = title.trim()
-        // if (newTitle === '') return
-
-        const post = {
-            id: Date.now(),
+        const newPost = {
             ...formData,
             tags: formData.tags.split(',').map(tag => tag.trim())
-        }
+        };
 
-        setPosts([...posts, post])
-        setFormData(initialFormData)
+        axios.post(`${API_BASE_URI}posts`, newPost)
+            .then((res) => {
+                console.log(res);
+                setPosts([...posts, res.data]);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     }
+
+    // function addPost(e) {
+    //     e.preventDefault()
+
+    //     // const newTitle = title.trim()
+    //     // if (newTitle === '') return
+
+    //     const post = {
+    //         id: Date.now(),
+    //         ...formData,
+    //         tags: formData.tags.split(',').map(tag => tag.trim())
+    //     }
+
+    //     setPosts([...posts, post])
+    //     setFormData(initialFormData)
+    // }
 
     function deletePost(id) {
         setPublishedPosts(publishedPosts.filter(post => post.id !== id))
